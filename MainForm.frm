@@ -70,7 +70,7 @@ Begin VB.Form MainForm
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BackStyle       =   0  'Transparent
-      Caption         =   "代码构建日期：2018-12-08　V0.1"
+      Caption         =   "代码构建日期：2018-12-08　V0.9"
       BeginProperty Font 
          Name            =   "微软雅黑"
          Size            =   9.75
@@ -112,7 +112,7 @@ Begin VB.Form MainForm
    Begin VB.Image Image1 
       Height          =   720
       Left            =   960
-      Picture         =   "MainForm.frx":59072
+      Picture         =   "MainForm.frx":10DC2
       Stretch         =   -1  'True
       Top             =   300
       Width           =   720
@@ -151,10 +151,11 @@ Private Declare Function ReleaseCapture Lib "user32" () As Long
 Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
 Private Const WM_NCLBUTTONDOWN = &HA1
 Private Const HTCAPTION = 2
+Private Const Auhor = "ttqf"
 
 Private Sub Exit_Click()
     说明.Caption = "正在恢复监控进程": DoEvents
-    ShellBlocked "taskkill /f /im PrinterSpoolMonitor.exe", vbHide
+    ShellBlocked "cmd.exe /c net start PrinterSpoolMonitor", vbHide
     End
 End Sub
 
