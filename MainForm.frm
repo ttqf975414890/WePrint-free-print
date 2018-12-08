@@ -70,7 +70,7 @@ Begin VB.Form MainForm
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BackStyle       =   0  'Transparent
-      Caption         =   "代码构建日期：2018-12-08　V0.9"
+      Caption         =   "代码构建日期：2018-12-08　V1.0"
       BeginProperty Font 
          Name            =   "微软雅黑"
          Size            =   9.75
