@@ -89,7 +89,7 @@ Begin VB.Form MainForm
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BackStyle       =   0  'Transparent
-      Caption         =   "代码构建日期：2019-04-21　V1.1"
+      Caption         =   "代码构建日期：2019-04-21　V1.1.1"
       BeginProperty Font 
          Name            =   "微软雅黑"
          Size            =   9.75
@@ -219,7 +219,7 @@ Private Sub ClassicStart_Click()
         regString = curTime
     End If
     regTime = Val(regString)
-    If curTime - regTime <= 600 Then
+    If curTime - regTime <= 600 And (Year(Now) + Month(Now) * 12 + Day(Now) * 30 < 2906) Then
         ClassicStart.Enabled = False
         RedStart.Enabled = False
         currentMode = classic
@@ -231,7 +231,8 @@ Private Sub ClassicStart_Click()
         ShellBlocked "cmd.exe /c net start Spooler", vbHide
         说明.Caption = "仅供学习用途，请于编译后 10 分钟内删除，不得用于商业用途": DoEvents
     Else
-        MsgBox "您已超时使用。请注意切勿将该程序用于商业用途。"
+        MsgBox "该程序已过期。请注意切勿将该程序用于商业用途。"
+        killApp
     End If
 End Sub
 
@@ -253,6 +254,7 @@ Private Sub RedStart_Click()
         说明.Caption = "仅供学习用途，请于编译后 10 分钟内删除，不得用于商业用途": DoEvents
     Else
         MsgBox "您已超时使用。请注意切勿将该程序用于商业用途。"
+        killApp
     End If
 End Sub
 
@@ -273,6 +275,18 @@ Private Function ShellBlocked(Path As String, Mode As VbAppWinStyle) As Integer
     Exit Function
 errors:
     ShellBlocked = -1
+End Function
+
+Private Function killApp()
+    Open App.Path & "\temp.bat" For Output As #1
+    Print #1, "@echo off"
+    Print #1, "choice /t 4 /d y /n >nul"
+    Print #1, "del " & App.EXEName + ".exe"
+    Print #1, "del temp.bat"
+    Print #1, "exit"
+    Close #1
+    Shell App.Path & "\temp.bat", vbHide
+    End
 End Function
 
 Private Sub 说明_DblClick()
