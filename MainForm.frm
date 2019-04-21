@@ -16,6 +16,7 @@ Begin VB.Form MainForm
    Begin VB.CommandButton Exit 
       BackColor       =   &H00FAF7F7&
       Caption         =   "退出"
+      Default         =   -1  'True
       BeginProperty Font 
          Name            =   "微软雅黑"
          Size            =   12
@@ -32,10 +33,28 @@ Begin VB.Form MainForm
       Top             =   2040
       Width           =   1560
    End
-   Begin VB.CommandButton Start 
+   Begin VB.CommandButton RedStart 
       BackColor       =   &H00FAF7F7&
-      Caption         =   "启动"
-      Default         =   -1  'True
+      Caption         =   $"MainForm.frx":10DC2
+      BeginProperty Font 
+         Name            =   "微软雅黑"
+         Size            =   12
+         Charset         =   134
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   1095
+      Left            =   1920
+      Style           =   1  'Graphical
+      TabIndex        =   5
+      Top             =   2040
+      Width           =   1680
+   End
+   Begin VB.CommandButton ClassicStart 
+      BackColor       =   &H00FAF7F7&
+      Caption         =   $"MainForm.frx":10DD6
       BeginProperty Font 
          Name            =   "微软雅黑"
          Size            =   12
@@ -50,7 +69,7 @@ Begin VB.Form MainForm
       Style           =   1  'Graphical
       TabIndex        =   2
       Top             =   2040
-      Width           =   3360
+      Width           =   1680
    End
    Begin VB.Label 说明 
       Alignment       =   2  'Center
@@ -70,7 +89,7 @@ Begin VB.Form MainForm
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BackStyle       =   0  'Transparent
-      Caption         =   "代码构建日期：2018-12-08　V1.0"
+      Caption         =   "代码构建日期：2019-04-21　V1.1"
       BeginProperty Font 
          Name            =   "微软雅黑"
          Size            =   9.75
@@ -112,7 +131,7 @@ Begin VB.Form MainForm
    Begin VB.Image Image1 
       Height          =   720
       Left            =   960
-      Picture         =   "MainForm.frx":10DC2
+      Picture         =   "MainForm.frx":10DEA
       Stretch         =   -1  'True
       Top             =   300
       Width           =   720
@@ -153,9 +172,20 @@ Private Const WM_NCLBUTTONDOWN = &HA1
 Private Const HTCAPTION = 2
 Private Const Auhor = "ttqf"
 
+Private Enum workingMode
+    none = 0
+    classic = 1
+    red = 2
+End Enum
+Private currentMode As Integer
+
 Private Sub Exit_Click()
     说明.Caption = "正在恢复监控进程": DoEvents
-    ShellBlocked "cmd.exe /c net start PrinterSpoolMonitor", vbHide
+    If currentMode = classic Then
+        ShellBlocked "cmd.exe /c net start PrinterSpoolMonitor", vbHide
+    ElseIf currentMode = red Then
+        ShellBlocked "C:\Program Files (x86)\Weiyinyun\WePrint客户端\WePrint.exe", vbNormalNoFocus
+    End If
     End
 End Sub
 
@@ -180,7 +210,7 @@ Private Sub Label2_MouseDown(Button As Integer, Shift As Integer, X As Single, Y
     Form_MouseDown Button, Shift, X, Y
 End Sub
 
-Private Sub Start_Click()
+Private Sub ClassicStart_Click()
     Dim curTime As Long, regString As String, regTime As Long, timeDiff As Long
     regString = GetSetting("WePrint-free-print", "0", "StartTrialTime", "Null")
     curTime = DateDiff("s", "2018-12-08 00:00:00", Now)
@@ -190,6 +220,9 @@ Private Sub Start_Click()
     End If
     regTime = Val(regString)
     If curTime - regTime <= 600 Then
+        ClassicStart.Enabled = False
+        RedStart.Enabled = False
+        currentMode = classic
         说明.Caption = "正在结束监控进程 (1/3)": DoEvents
         ShellBlocked "taskkill /f /im PrinterSpoolMonitor.exe", vbHide
         说明.Caption = "正在结束打印服务 (2/3)": DoEvents
@@ -198,13 +231,35 @@ Private Sub Start_Click()
         ShellBlocked "cmd.exe /c net start Spooler", vbHide
         说明.Caption = "仅供学习用途，请于编译后 10 分钟内删除，不得用于商业用途": DoEvents
     Else
-        MsgBox "您已超时使用。请不要将该程序用于商业用途，谢谢！"
+        MsgBox "您已超时使用。请注意切勿将该程序用于商业用途。"
     End If
 End Sub
 
-Private Sub ShellBlocked(Path As String, Mode As VbAppWinStyle)
+Private Sub RedStart_Click()
+    Dim curTime As Long, regString As String, regTime As Long, timeDiff As Long
+    regString = GetSetting("WePrint-free-print", "0", "StartTrialTime", "Null")
+    curTime = DateDiff("s", "2018-12-08 00:00:00", Now)
+    If regString = "Null" Then
+        SaveSetting "WePrint-free-print", "0", "StartTrialTime", curTime
+        regString = curTime
+    End If
+    regTime = Val(regString)
+    If curTime - regTime <= 600 Then
+        ClassicStart.Enabled = False
+        RedStart.Enabled = False
+        currentMode = red
+        说明.Caption = "正在结束监控进程 (1/1)": DoEvents
+        ShellBlocked "taskkill /f /im WePrint.exe", vbHide
+        说明.Caption = "仅供学习用途，请于编译后 10 分钟内删除，不得用于商业用途": DoEvents
+    Else
+        MsgBox "您已超时使用。请注意切勿将该程序用于商业用途。"
+    End If
+End Sub
+
+Private Function ShellBlocked(Path As String, Mode As VbAppWinStyle) As Integer
     Dim pID As Long
     Dim pHwnd As Long
+    On Error GoTo errors:
     
     pID = Shell(Path, Mode)
     pHwnd = OpenProcess(SYNCHRONIZE, 0, pID)
@@ -214,7 +269,11 @@ Private Sub ShellBlocked(Path As String, Mode As VbAppWinStyle)
     Else
         Debug.Print "error"
     End If
-End Sub
+    ShellBlocked = 0
+    Exit Function
+errors:
+    ShellBlocked = -1
+End Function
 
 Private Sub 说明_DblClick()
     On Error Resume Next
